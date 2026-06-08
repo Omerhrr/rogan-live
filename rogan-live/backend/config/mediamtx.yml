@@ -1,5 +1,6 @@
 ###############################################
 # Rogan Live — MediaMTX Configuration
+# Compatible with MediaMTX v1.19.0+
 # RTMP ingest + LL-HLS + WebRTC
 ###############################################
 
@@ -7,53 +8,65 @@
 logLevel: info
 logDestinations: [stdout]
 
+# Authentication — external webhook via our FastAPI backend
+authMethod: external
+authHTTPAddress: http://backend:8000/api/v1/mediamtx/auth
+# Exclude API/metrics from external auth (they use internal auth)
+authHTTPExclude:
+  - action: api
+  - action: metrics
+  - action: pprof
+
+# Internal auth — allow read access for viewers without login
+authInternalUsers:
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: read
+        path:
+      - action: playback
+        path:
+
 # API server (for management / metrics)
-api: yes
+api: true
 apiAddress: :9997
 
-# Authentication webhook — MediaMTX calls our FastAPI endpoint
-# to validate every publish / read request.
-authMethod: external
-externalAuthURL: http://backend:8000/api/v1/mediamtx/auth
-
 # RTMP server — primary ingest point
-rtmp: yes
+rtmp: true
 rtmpAddress: :1935
 
 # LL-HLS (Low-Latency HLS) — viewer playback
-hls: yes
+hls: true
 hlsAddress: :8888
-hlsAlwaysRemux: yes
+hlsAlwaysRemux: true
 hlsVariant: lowLatency
 hlsSegmentCount: 7
 hlsSegmentDuration: 1s
 hlsPartDuration: 200ms
 
 # WebRTC — ultra-low-latency viewer playback
-webrtc: yes
+webrtc: true
 webrtcAddress: :8889
 
-# Recording — save streams to disk
-record: yes
-recordPath: ./recordings
-recordFormat: fmp4
-recordPartDuration: 1s
-recordSegmentDuration: 10m
+# Default path settings
+pathDefaults:
+  # Source is RTMP ingest from creators
+  source: publisher
+  sourceOnDemand: false
+  # Recording settings
+  record: true
+  recordPath: ./recordings/%path/%Y-%m-%d_%H-%M-%S-%f
+  recordFormat: fmp4
+  recordPartDuration: 1s
+  recordSegmentDuration: 10m
 
 # Path configuration — stream key based routing
 # Creators publish to rl_{stream_key}
 # Viewers consume the same path
 paths:
   rl_*:
-    # Source is RTMP ingest
     source: publisher
-    # Override auth for this path pattern —
-    # the global authMethod already covers it
-    # but we explicitly set it for clarity
-    sourceOnDemand: no
-    # Recording settings
-    record: yes
-    recordPath: ./recordings/%path/%Y-%m-%d_%H-%M-%S
-    # Playback — no auth needed for viewers
-    readUser:
-    readPass:
+    sourceOnDemand: false
+    record: true
+    recordPath: ./recordings/%path/%Y-%m-%d_%H-%M-%S-%f
