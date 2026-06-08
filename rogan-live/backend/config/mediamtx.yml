@@ -65,7 +65,7 @@ pathDefaults:
 # Creators publish to rl_{stream_key}
 # Viewers consume the same path
 paths:
-  rl_*:
+  ~^rl_:
     source: publisher
     sourceOnDemand: false
     record: true
