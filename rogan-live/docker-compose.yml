@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # ── PostgreSQL ──────────────────────────────────────────────────
   postgres:
@@ -31,6 +29,23 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── Alembic Migrations ─────────────────────────────────────────
+  alembic-migrate:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://rogan:rogan_secret@postgres:5432/rogan_live
+      REDIS_URL: redis://redis:6379/0
+      REDIS_ENABLED: "true"
+      JWT_SECRET: change-me-in-production
+      DEBUG: "true"
+      USE_ALEMBIC: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: alembic upgrade head
+
   # ── FastAPI Backend ─────────────────────────────────────────────
   backend:
     build: ./backend
@@ -40,13 +55,12 @@ services:
       REDIS_ENABLED: "true"
       JWT_SECRET: change-me-in-production
       DEBUG: "true"
+      USE_ALEMBIC: "true"
     ports:
       - "8000:8000"
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      alembic-migrate:
+        condition: service_completed_successfully
     volumes:
       - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

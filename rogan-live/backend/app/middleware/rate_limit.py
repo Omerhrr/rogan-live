@@ -10,7 +10,7 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from app.utils.redis_client import redis_client
+from app.config import settings
 
 
 def get_client_identifier(request: Request) -> str:
@@ -22,7 +22,6 @@ def get_client_identifier(request: Request) -> str:
     if auth_header.startswith("Bearer "):
         try:
             from jose import jwt
-            from app.config import settings
 
             token = auth_header.replace("Bearer ", "")
             payload = jwt.decode(
@@ -41,18 +40,13 @@ def get_client_identifier(request: Request) -> str:
 # Create the rate limiter instance
 def create_rate_limiter() -> Limiter:
     """Create and configure the rate limiter with Redis storage if available."""
-    limiter = Limiter(
-        key_func=get_client_identifier,
-        default_limits=["100/minute"],  # Default: 100/min for general API
-    )
-
     # Try to use Redis storage if the real redis package is available
     try:
-        import redis as redis_lib
+        import redis as redis_lib  # noqa: F401
         if settings.REDIS_ENABLED:
             storage_uri = settings.REDIS_URL
             # SlowAPI supports storage_uri parameter
-            limiter = Limiter(
+            return Limiter(
                 key_func=get_client_identifier,
                 default_limits=["100/minute"],
                 storage_uri=storage_uri,
@@ -60,10 +54,11 @@ def create_rate_limiter() -> Limiter:
     except Exception:
         pass  # Fall back to in-memory storage
 
-    return limiter
+    return Limiter(
+        key_func=get_client_identifier,
+        default_limits=["100/minute"],  # Default: 100/min for general API
+    )
 
-
-from app.config import settings
 
 # Singleton rate limiter
 limiter = create_rate_limiter()

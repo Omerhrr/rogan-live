@@ -14,7 +14,7 @@ apiAddress: :9997
 # Authentication webhook — MediaMTX calls our FastAPI endpoint
 # to validate every publish / read request.
 authMethod: external
-authAddress: http://backend:8000/api/v1/mediamtx/auth
+externalAuthURL: http://backend:8000/api/v1/mediamtx/auth
 
 # RTMP server — primary ingest point
 rtmp: yes

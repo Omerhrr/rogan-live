@@ -3,12 +3,12 @@ ROGAN LIVE - Database Setup (SQLAlchemy)
 Supports SQLite for development, PostgreSQL for production.
 """
 
-import os
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./rogan_live.db")
+from app.config import settings
+
+DATABASE_URL = settings.DATABASE_URL
 
 # Handle non-SQLAlchemy URL formats (e.g. file:/path/to/db)
 if DATABASE_URL.startswith("file:"):
