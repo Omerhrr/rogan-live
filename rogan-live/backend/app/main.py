@@ -3,6 +3,7 @@ ROGAN LIVE - Main FastAPI Application
 Mounts all routers, middleware, WebSocket endpoint, and startup logic.
 """
 
+import os
 import asyncio
 from contextlib import asynccontextmanager
 
@@ -17,6 +18,7 @@ from app.database import Base, engine
 from app.routes import auth, creators, dm, gifts, notifications, streams, wallet
 from app.routes import moderation, tasks, subscriptions
 from app.routes import marketplace, pk_battles, web3, oauth
+from app.routes import stream_keys, mediamtx, private_shows
 from app.websocket.handler import websocket_endpoint
 
 # Rate limiter instance
@@ -43,11 +45,19 @@ async def _auto_renewal_task():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: create database tables, start background tasks."""
+    """Startup: create database tables (if not using Alembic), start background tasks."""
     # Import all models so Base.metadata knows about them
     import app.models.models  # noqa: F401
 
-    Base.metadata.create_all(bind=engine)
+    # Only auto-create tables when NOT using Alembic migrations
+    # (SQLite dev mode or missing alembic.ini)
+    use_alembic = os.getenv("USE_ALEMBIC", "false").lower() == "true"
+    if not use_alembic:
+        Base.metadata.create_all(bind=engine)
+        print("📋 Tables created via Base.metadata.create_all()")
+    else:
+        print("📋 Alembic migrations detected — skipping auto table creation")
+
     print(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} started")
     print(f"📊 Database: {settings.DATABASE_URL}")
     print(f"🔑 Redis enabled: {settings.REDIS_ENABLED}")
@@ -103,6 +113,11 @@ app.include_router(pk_battles.router, prefix=settings.API_PREFIX)
 # Phase 4
 app.include_router(web3.router, prefix=settings.API_PREFIX)
 app.include_router(oauth.router, prefix=settings.API_PREFIX)
+
+# Phase 5 — Stream Keys, MediaMTX, Private Shows
+app.include_router(stream_keys.router, prefix=settings.API_PREFIX)
+app.include_router(mediamtx.router, prefix=settings.API_PREFIX)
+app.include_router(private_shows.router, prefix=settings.API_PREFIX)
 
 # WebSocket endpoint — accepts token query param for JWT auth
 @app.websocket("/ws/{stream_id}/{user_id}")

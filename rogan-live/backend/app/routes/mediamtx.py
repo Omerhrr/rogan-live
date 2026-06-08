@@ -50,7 +50,7 @@ def mediamtx_auth(
 
 
 @router.post("/rtmp-publish")
-def mediamtx_rtmp_publish(
+async def mediamtx_rtmp_publish(
     request: Request,
     db: Session = Depends(get_db),
 ):
@@ -60,7 +60,7 @@ def mediamtx_rtmp_publish(
     to live and publishes a stream event via Redis PubSub.
     """
     try:
-        body = _parse_event_body(request)
+        body = await _parse_event_body(request)
     except Exception:
         body = {}
 
@@ -106,7 +106,7 @@ def mediamtx_rtmp_publish(
 
 
 @router.post("/rtmp-unpublish")
-def mediamtx_rtmp_unpublish(
+async def mediamtx_rtmp_unpublish(
     request: Request,
     db: Session = Depends(get_db),
 ):
@@ -116,7 +116,7 @@ def mediamtx_rtmp_unpublish(
     to offline and publishes a stream event via Redis PubSub.
     """
     try:
-        body = _parse_event_body(request)
+        body = await _parse_event_body(request)
     except Exception:
         body = {}
 

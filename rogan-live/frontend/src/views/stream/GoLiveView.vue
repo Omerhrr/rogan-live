@@ -145,7 +145,7 @@ function formatTime(dateStr: string | null): string {
   return new Date(dateStr).toLocaleString();
 }
 
-function showSnackbarMsg(text: string, _isError: boolean = false): void {
+function showSnackbar(text: string, _isError: boolean = false): void {
   snackbarText.value = text;
   snackbar.value = true;
 }

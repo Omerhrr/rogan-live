@@ -15,12 +15,11 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
 
     # Database - SQLite for dev, PostgreSQL for production
-    DATABASE_URL: str = "sqlite:////home/z/my-project/rogan-live/backend/rogan_live.db"
-    # DATABASE_URL: str = "postgresql://user:pass@localhost:5432/rogan_live"  # Production
+    DATABASE_URL: str = "postgresql://rogan:rogan_secret@localhost:5432/rogan_live"
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
-    REDIS_ENABLED: bool = False  # Set True when Redis is available
+    REDIS_ENABLED: bool = True
 
     # JWT Auth
     JWT_SECRET: str = os.getenv("JWT_SECRET", "rogan-live-super-secret-key-change-in-prod")
@@ -32,10 +31,10 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
 
     # CORS
-    CORS_ORIGINS: list = ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"]
+    CORS_ORIGINS: list = ["http://localhost:5173", "http://localhost:8000"]
 
     # MediaMTX
-    MEDIAMTX_HOST: str = os.getenv("MEDIAMTX_HOST", "localhost")
+    MEDIAMTX_HOST: str = os.getenv("MEDIAMTX_HOST", "mediamtx")
     MEDIAMTX_API_PORT: int = 9997
     MEDIAMTX_RTMP_PORT: int = 1935
     MEDIAMTX_HLS_PORT: int = 8888

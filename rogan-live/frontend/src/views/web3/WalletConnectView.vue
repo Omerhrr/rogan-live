@@ -31,7 +31,7 @@ async function connectMetaMask(): Promise<void> {
 
     const accounts = await window.ethereum.request({
       method: 'eth_requestAccounts',
-    });
+    }) as string[];
 
     if (accounts && accounts.length > 0) {
       ethAddress.value = accounts[0];
@@ -100,7 +100,8 @@ walletStore.fetchWallet();
 if (typeof window.ethereum !== 'undefined') {
   window.ethereum
     .request({ method: 'eth_accounts' })
-    .then((accounts: string[]) => {
+    .then((res: unknown) => {
+      const accounts = res as string[];
       if (accounts.length > 0) {
         ethAddress.value = accounts[0];
         isWalletConnected.value = true;

@@ -20,13 +20,13 @@ async function signInWithEthereum(): Promise<void> {
     // Request accounts
     const accounts = await window.ethereum.request({
       method: 'eth_requestAccounts',
-    });
+    }) as string[];
 
     if (!accounts || accounts.length === 0) {
       throw new Error('No accounts found');
     }
 
-    const address = accounts[0];
+    const address: string = accounts[0];
 
     // Get SIWE nonce from backend
     const { message, nonce } = await web3Service.getSIWENonce();
@@ -35,10 +35,10 @@ async function signInWithEthereum(): Promise<void> {
     const siweMessage = message;
 
     // Request signature from MetaMask
-    const signature = await window.ethereum.request({
+    const signature = (await window.ethereum.request({
       method: 'personal_sign',
       params: [siweMessage, address],
-    });
+    })) as string;
 
     // Verify signature with backend
     const result = await web3Service.signInWithEthereum(siweMessage, signature);
