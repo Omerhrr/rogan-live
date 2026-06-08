@@ -1,0 +1,59 @@
+###############################################
+# Rogan Live — MediaMTX Configuration
+# RTMP ingest + LL-HLS + WebRTC
+###############################################
+
+# General settings
+logLevel: info
+logDestinations: [stdout]
+
+# API server (for management / metrics)
+api: yes
+apiAddress: :9997
+
+# Authentication webhook — MediaMTX calls our FastAPI endpoint
+# to validate every publish / read request.
+authMethod: external
+authAddress: http://host.docker.internal:8000/api/v1/mediamtx/auth
+
+# RTMP server — primary ingest point
+rtmp: yes
+rtmpAddress: :1935
+
+# LL-HLS (Low-Latency HLS) — viewer playback
+hls: yes
+hlsAddress: :8888
+hlsAlwaysRemux: yes
+hlsVariant: lowLatency
+hlsSegmentCount: 7
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+
+# WebRTC — ultra-low-latency viewer playback
+webrtc: yes
+webrtcAddress: :8889
+
+# Recording — save streams to disk
+record: yes
+recordPath: ./recordings
+recordFormat: fmp4
+recordPartDuration: 1s
+recordSegmentDuration: 10m
+
+# Path configuration — stream key based routing
+# Creators publish to rl_{stream_key}
+# Viewers consume the same path
+paths:
+  rl_*:
+    # Source is RTMP ingest
+    source: publisher
+    # Override auth for this path pattern —
+    # the global authMethod already covers it
+    # but we explicitly set it for clarity
+    sourceOnDemand: no
+    # Recording settings
+    record: yes
+    recordPath: ./recordings/%path/%Y-%m-%d_%H-%M-%S
+    # Playback — no auth needed for viewers
+    readUser:
+    readPass:
