@@ -9,7 +9,7 @@ logLevel: info
 logDestinations: [stdout]
 
 # Authentication — external webhook via our FastAPI backend
-authMethod: external
+authMethod: http
 authHTTPAddress: http://backend:8000/api/v1/mediamtx/auth
 # Exclude API/metrics from external auth (they use internal auth)
 authHTTPExclude:
