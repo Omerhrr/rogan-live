@@ -28,6 +28,13 @@ security = HTTPBearer()
 limiter = Limiter(key_func=get_remote_address)
 
 
+@router.get("/google-client-id")
+def get_google_client_id():
+    """Return the Google OAuth Client ID for frontend initialization."""
+    from app.config import settings
+    return {"client_id": settings.GOOGLE_CLIENT_ID}
+
+
 def get_current_user_dependency(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
@@ -124,6 +131,28 @@ def get_me(current_user=Depends(get_current_user_dependency)):
         is_live=current_user.is_live,
         created_at=current_user.created_at,
     )
+
+
+@router.get("/users/{user_id}")
+def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
+    """Get any user's public profile by ID."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    return {
+        "id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "display_name": user.display_name,
+        "avatar": user.avatar,
+        "bio": user.bio,
+        "role": user.role,
+        "is_live": user.is_live,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+    }
 
 
 @router.put("/me", response_model=UserResponse)

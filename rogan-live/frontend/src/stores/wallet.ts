@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { Wallet, Transaction, PaginatedResponse } from '@/types';
+import type { Wallet, Transaction } from '@/types';
 import * as walletService from '@/services/wallet';
 
 export const useWalletStore = defineStore('wallet', () => {
@@ -47,11 +47,11 @@ export const useWalletStore = defineStore('wallet', () => {
   async function fetchTransactions(append: boolean = false): Promise<void> {
     loading.value = true;
     try {
-      const res: PaginatedResponse<Transaction> = await walletService.getTransactions(
+      const res = await walletService.getTransactions(
         transactionPage.value,
         20
       );
-      const items = res.streams ?? res.items ?? [];
+      const items = res.transactions ?? [];
       if (append) {
         transactions.value.push(...items);
       } else {

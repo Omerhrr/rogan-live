@@ -12,8 +12,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     loading.value = true;
     try {
       const res = await notificationService.getNotifications();
-      // Backend may return items under `streams` or `items` key
-      notifications.value = res.streams ?? res.items ?? [];
+      notifications.value = res.notifications ?? [];
     } finally {
       loading.value = false;
     }

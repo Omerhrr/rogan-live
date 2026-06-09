@@ -6,7 +6,7 @@ export interface User {
   display_name: string;
   avatar: string;
   bio: string;
-  role: 'viewer' | 'creator' | 'admin';
+  role: 'user' | 'creator' | 'admin';
   is_live: boolean;
   created_at: string;
 }

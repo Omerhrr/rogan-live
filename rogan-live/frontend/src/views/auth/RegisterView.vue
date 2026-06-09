@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import api from '@/services/api';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -16,6 +17,8 @@ const showPassword = ref(false);
 const loading = ref(false);
 const errorMsg = ref('');
 const valid = ref(false);
+const googleClientId = ref('');
+const googleReady = ref(false);
 
 const emailRules = [
   (v: string) => !!v || 'Email is required',
@@ -38,6 +41,23 @@ const confirmPasswordRules = [
   (v: string) => v === form.password || 'Passwords do not match',
 ];
 
+onMounted(async () => {
+  try {
+    const { data } = await api.get('/auth/google-client-id');
+    googleClientId.value = data.client_id || '';
+    if (googleClientId.value) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => { googleReady.value = true; };
+      document.head.appendChild(script);
+    }
+  } catch {
+    // Google OAuth not configured
+  }
+});
+
 async function handleRegister(): Promise<void> {
   if (!valid.value) return;
   loading.value = true;
@@ -53,8 +73,38 @@ async function handleRegister(): Promise<void> {
   }
 }
 
-async function handleGoogleRegister(): Promise<void> {
-  errorMsg.value = 'Google OAuth requires server configuration. Use email registration for now.';
+function handleGoogleRegister(): void {
+  if (!googleClientId.value || !googleReady.value) {
+    errorMsg.value = 'Google Sign-In is not configured. Use email registration for now.';
+    return;
+  }
+
+  try {
+    // @ts-ignore
+    google.accounts.id.initialize({
+      client_id: googleClientId.value,
+      callback: async (response: any) => {
+        if (!response.credential) {
+          errorMsg.value = 'Google Sign-Up was cancelled.';
+          return;
+        }
+        loading.value = true;
+        errorMsg.value = '';
+        try {
+          await authStore.googleLogin(response.credential);
+          router.push('/');
+        } catch (err: any) {
+          errorMsg.value = err.response?.data?.detail || 'Google Sign-Up failed.';
+        } finally {
+          loading.value = false;
+        }
+      },
+    });
+    // @ts-ignore
+    google.accounts.id.prompt();
+  } catch {
+    errorMsg.value = 'Google Sign-In failed to initialize. Use email registration.';
+  }
 }
 </script>
 
@@ -155,6 +205,7 @@ async function handleGoogleRegister(): Promise<void> {
           variant="outlined"
           color="#3D3D3D"
           rounded="lg"
+          :loading="loading"
           @click="handleGoogleRegister"
         >
           <v-icon start>mdi-google</v-icon>

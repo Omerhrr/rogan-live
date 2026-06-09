@@ -16,8 +16,8 @@ export async function sendDM(
   return data;
 }
 
-export async function getConversations(): Promise<Conversation[]> {
-  const { data } = await api.get<Conversation[]>('/dm/conversations');
+export async function getConversations(): Promise<{ conversations: any[]; total: number; page: number; limit: number; pages: number }> {
+  const { data } = await api.get('/dm/conversations');
   return data;
 }
 

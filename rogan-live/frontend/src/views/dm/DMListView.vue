@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useDMStore } from '@/stores/dm';
 import { useResponsive } from '@/composables/useResponsive';
-import type { Conversation } from '@/types';
 
 const router = useRouter();
 const dmStore = useDMStore();
@@ -19,8 +18,8 @@ const filteredConversations = computed(() => {
   const q = searchQuery.value.toLowerCase();
   return dmStore.conversations.filter(
     (c) =>
-      c.partner.display_name.toLowerCase().includes(q) ||
-      c.partner.username.toLowerCase().includes(q)
+      (c.other_user?.display_name || '').toLowerCase().includes(q) ||
+      (c.other_user?.username || '').toLowerCase().includes(q)
   );
 });
 
@@ -28,7 +27,8 @@ function openConversation(partnerId: string): void {
   router.push(`/dm/${partnerId}`);
 }
 
-function formatTime(dateStr: string): string {
+function formatTime(dateStr: string | null): string {
+  if (!dateStr) return '';
   const date = new Date(dateStr);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
@@ -65,27 +65,26 @@ function formatTime(dateStr: string): string {
       </div>
 
       <div v-else class="space-y-1">
-        <div v-for="conv in filteredConversations" :key="conv.partner.id"
+        <div v-for="conv in filteredConversations" :key="conv.id"
           class="flex items-center gap-4 p-4 rounded-xl hover:bg-[#1E1E1E] cursor-pointer transition-colors"
-          @click="openConversation(conv.partner.id)"
+          @click="openConversation(conv.other_user?.id || '')"
         >
           <v-avatar size="48" class="flex-shrink-0">
-            <v-img v-if="conv.partner.avatar" :src="conv.partner.avatar" :alt="conv.partner.display_name" />
+            <v-img v-if="conv.other_user?.avatar" :src="conv.other_user.avatar" :alt="conv.other_user.display_name" />
             <v-icon v-else size="28">mdi-account</v-icon>
           </v-avatar>
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between">
               <span class="text-white font-medium text-sm truncate">
-                {{ conv.partner.display_name }}
-                <v-icon v-if="conv.partner.role === 'creator'" size="14" color="rogan-primary">mdi-star</v-icon>
+                {{ conv.other_user?.display_name || conv.other_user?.username || 'Unknown' }}
               </span>
-              <span class="text-gray-500 text-xs flex-shrink-0 ml-2">{{ formatTime(conv.last_message.created_at) }}</span>
+              <span class="text-gray-500 text-xs flex-shrink-0 ml-2">{{ formatTime(conv.last_message?.created_at || null) }}</span>
             </div>
             <div class="flex items-center justify-between mt-0.5">
               <p class="text-gray-400 text-xs truncate">
-                <span v-if="conv.last_message.is_paid" class="text-amber-400 mr-1">💰</span>
-                {{ conv.last_message.content }}
+                <span v-if="conv.last_message?.is_paid" class="text-amber-400 mr-1">Paid</span>
+                {{ conv.last_message?.content || 'No messages yet' }}
               </p>
               <v-badge v-if="conv.unread_count > 0" :content="conv.unread_count" color="rogan-primary" inline class="ml-2" />
             </div>
@@ -116,27 +115,26 @@ function formatTime(dateStr: string): string {
     </div>
 
     <div v-else class="space-y-1">
-      <div v-for="conv in filteredConversations" :key="conv.partner.id"
+      <div v-for="conv in filteredConversations" :key="conv.id"
         class="flex items-center gap-3 p-3 rounded-xl hover:bg-[#1E1E1E] cursor-pointer transition-colors"
-        @click="openConversation(conv.partner.id)"
+        @click="openConversation(conv.other_user?.id || '')"
       >
         <v-avatar size="48" class="flex-shrink-0">
-          <v-img v-if="conv.partner.avatar" :src="conv.partner.avatar" :alt="conv.partner.display_name" />
+          <v-img v-if="conv.other_user?.avatar" :src="conv.other_user.avatar" :alt="conv.other_user.display_name" />
           <v-icon v-else size="28">mdi-account</v-icon>
         </v-avatar>
 
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between">
             <span class="text-white font-medium text-sm truncate">
-              {{ conv.partner.display_name }}
-              <v-icon v-if="conv.partner.role === 'creator'" size="14" color="rogan-primary">mdi-star</v-icon>
+              {{ conv.other_user?.display_name || conv.other_user?.username || 'Unknown' }}
             </span>
-            <span class="text-gray-500 text-xs flex-shrink-0 ml-2">{{ formatTime(conv.last_message.created_at) }}</span>
+            <span class="text-gray-500 text-xs flex-shrink-0 ml-2">{{ formatTime(conv.last_message?.created_at || null) }}</span>
           </div>
           <div class="flex items-center justify-between mt-0.5">
             <p class="text-gray-400 text-xs truncate">
-              <span v-if="conv.last_message.is_paid" class="text-amber-400 mr-1">💰</span>
-              {{ conv.last_message.content }}
+              <span v-if="conv.last_message?.is_paid" class="text-amber-400 mr-1">Paid</span>
+              {{ conv.last_message?.content || 'No messages yet' }}
             </p>
             <v-badge v-if="conv.unread_count > 0" :content="conv.unread_count" color="rogan-primary" inline class="ml-2" />
           </div>

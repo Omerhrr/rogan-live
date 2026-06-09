@@ -2,7 +2,7 @@ import api from './api';
 import type { Wallet, Transaction, PaginatedResponse } from '@/types';
 
 export async function getWallet(): Promise<Wallet> {
-  const { data } = await api.get<Wallet>('/wallet');
+  const { data } = await api.get<Wallet>('/wallet/');
   return data;
 }
 
@@ -26,8 +26,8 @@ export async function withdrawRogan(tkAmount: number): Promise<Wallet> {
 export async function getTransactions(
   page: number = 1,
   limit: number = 20
-): Promise<PaginatedResponse<Transaction>> {
-  const { data } = await api.get<PaginatedResponse<Transaction>>(
+): Promise<{ transactions: Transaction[]; total: number; page: number; limit: number; pages: number }> {
+  const { data } = await api.get(
     '/wallet/transactions',
     { params: { page, limit } }
   );

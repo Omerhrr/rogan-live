@@ -56,6 +56,7 @@ services:
       JWT_SECRET: change-me-in-production
       DEBUG: "true"
       USE_ALEMBIC: "true"
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     ports:
       - "8000:8000"
     depends_on:

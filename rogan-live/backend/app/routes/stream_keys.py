@@ -50,7 +50,7 @@ def get_my_stream_keys(
 @router.post("/{key_id}/rotate")
 def rotate_stream_key(
     key_id: str,
-    req: StreamKeyCreate,
+    req: StreamKeyCreate = None,
     current_user: User = Depends(get_current_user_dependency),
     db: Session = Depends(get_db),
 ):
@@ -58,11 +58,12 @@ def rotate_stream_key(
 
     Only the owner of the key can rotate it.
     """
+    label = req.label if req else None
     new_key = stream_key_service.rotate_stream_key(
         db=db,
         key_id=key_id,
         user_id=current_user.id,
-        label=req.label,
+        label=label,
     )
     return _key_response(new_key)
 
