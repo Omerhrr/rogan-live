@@ -1,51 +1,36 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import AppHeader from '@/components/common/AppHeader.vue';
-import AppBottomNav from '@/components/common/AppBottomNav.vue';
-import { useAuthStore } from '@/stores/auth';
+import { useResponsive } from '@/composables/useResponsive';
+import DesktopLayout from '@/layouts/DesktopLayout.vue';
+import MobileLayout from '@/layouts/MobileLayout.vue';
 
 const route = useRoute();
-const authStore = useAuthStore();
-
-const showSnackbar = ref(false);
-const snackbarText = ref('');
-const snackbarColor = ref('success');
+const { layoutMode } = useResponsive();
 
 const isAuthRoute = computed(() => route.path.startsWith('/auth'));
-const showNav = computed(() => !isAuthRoute.value);
 </script>
 
 <template>
   <v-app class="bg-[#121212]">
-    <AppHeader v-if="showNav" />
+    <!-- Auth pages: no layout wrapper -->
+    <template v-if="isAuthRoute">
+      <v-main class="bg-[#121212]">
+        <router-view />
+      </v-main>
+    </template>
 
-    <v-main class="bg-[#121212]">
-      <router-view />
-    </v-main>
+    <!-- App pages: device-specific layout -->
+    <template v-else>
+      <DesktopLayout v-if="layoutMode === 'desktop'" />
+      <MobileLayout v-else />
+    </template>
 
-    <AppBottomNav v-if="showNav" />
-
-    <!-- Global Snackbar / Toast -->
+    <!-- Global Snackbar -->
     <v-snackbar
-      v-model="showSnackbar"
-      :color="snackbarColor"
+      :model-value="false"
       :timeout="3000"
       location="top"
-    >
-      {{ snackbarText }}
-      <template #actions>
-        <v-btn variant="text" @click="showSnackbar = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </template>
-    </v-snackbar>
+    />
   </v-app>
 </template>
-
-<style scoped>
-.v-main {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
-</style>
