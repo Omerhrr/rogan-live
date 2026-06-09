@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import api from '@/services/api';
 
 const router = useRouter();
 const route = useRoute();
@@ -15,6 +16,8 @@ const showPassword = ref(false);
 const loading = ref(false);
 const errorMsg = ref('');
 const valid = ref(false);
+const googleClientId = ref('');
+const googleReady = ref(false);
 
 const emailRules = [
   (v: string) => !!v || 'Email is required',
@@ -25,6 +28,32 @@ const passwordRules = [
   (v: string) => !!v || 'Password is required',
   (v: string) => v.length >= 6 || 'Password must be at least 6 characters',
 ];
+
+onMounted(async () => {
+  try {
+    const { data } = await api.get('/auth/google-client-id');
+    googleClientId.value = data.client_id || '';
+    if (googleClientId.value) {
+      initializeGoogleSignIn();
+    }
+  } catch {
+    // Google OAuth not configured
+  }
+});
+
+function initializeGoogleSignIn(): void {
+  if (!googleClientId.value) return;
+
+  // Load Google Identity Services script
+  const script = document.createElement('script');
+  script.src = 'https://accounts.google.com/gsi/client';
+  script.async = true;
+  script.defer = true;
+  script.onload = () => {
+    googleReady.value = true;
+  };
+  document.head.appendChild(script);
+}
 
 async function handleLogin(): Promise<void> {
   if (!valid.value) return;
@@ -42,9 +71,53 @@ async function handleLogin(): Promise<void> {
   }
 }
 
-async function handleGoogleLogin(): Promise<void> {
-  // In production, this would use Google OAuth SDK
-  errorMsg.value = 'Google OAuth requires server configuration. Use email login for now.';
+function handleGoogleLogin(): void {
+  if (!googleClientId.value || !googleReady.value) {
+    errorMsg.value = 'Google Sign-In is not configured. Use email login for now.';
+    return;
+  }
+
+  try {
+    // @ts-ignore - google accounts API
+    google.accounts.id.initialize({
+      client_id: googleClientId.value,
+      callback: handleGoogleCallback,
+      auto_select: false,
+    });
+    // @ts-ignore
+    google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // Fallback: try the One Tap method
+        // @ts-ignore
+        google.accounts.id.renderButton(
+          document.getElementById('google-btn-container'),
+          { theme: 'filled_black', size: 'large', width: 400 }
+        );
+      }
+    });
+  } catch {
+    errorMsg.value = 'Google Sign-In failed to initialize. Use email login.';
+  }
+}
+
+async function handleGoogleCallback(response: any): Promise<void> {
+  if (!response.credential) {
+    errorMsg.value = 'Google Sign-In was cancelled.';
+    return;
+  }
+
+  loading.value = true;
+  errorMsg.value = '';
+
+  try {
+    await authStore.googleLogin(response.credential);
+    const redirect = (route.query.redirect as string) || '/';
+    router.push(redirect);
+  } catch (err: any) {
+    errorMsg.value = err.response?.data?.detail || 'Google Sign-In failed. Please try again.';
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
@@ -118,12 +191,14 @@ async function handleGoogleLogin(): Promise<void> {
           <v-divider class="flex-1" color="#3D3D3D" />
         </div>
 
+        <div id="google-btn-container" class="mb-3"></div>
         <v-btn
           block
           size="large"
           variant="outlined"
           color="#3D3D3D"
           rounded="lg"
+          :loading="loading"
           @click="handleGoogleLogin"
         >
           <v-icon start>mdi-google</v-icon>

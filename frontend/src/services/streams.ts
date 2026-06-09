@@ -41,12 +41,12 @@ export async function generateStreamKey(label: string = 'default'): Promise<Stre
 }
 
 export async function getStreamKeys(): Promise<StreamKey[]> {
-  const { data } = await api.get<StreamKey[]>('/stream-keys/me');
-  return data;
+  const { data } = await api.get<{ keys: StreamKey[] }>('/stream-keys/me');
+  return data.keys ?? [];
 }
 
 export async function rotateStreamKey(keyId: string): Promise<StreamKey> {
-  const { data } = await api.post<StreamKey>(`/stream-keys/${keyId}/rotate`);
+  const { data } = await api.post<StreamKey>(`/stream-keys/${keyId}/rotate`, { label: 'rotated' });
   return data;
 }
 

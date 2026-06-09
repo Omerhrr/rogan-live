@@ -20,6 +20,8 @@ export default defineConfig({
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:8000',
         changeOrigin: true,
+        // Auto-rewrite redirect URLs from backend hostname to frontend
+        autoRewrite: true,
       },
       '/ws': {
         target: process.env.VITE_WS_URL || 'ws://localhost:8000',

@@ -45,13 +45,13 @@ const routes = [
     path: '/stream/go-live',
     name: 'GoLive',
     component: () => import('@/views/stream/GoLiveView.vue'),
-    meta: { requiresAuth: true, creatorOnly: true },
+    meta: { requiresAuth: true },
   },
   {
     path: '/stream/keys',
     name: 'StreamKeys',
     component: () => import('@/views/stream/StreamKeyView.vue'),
-    meta: { requiresAuth: true, creatorOnly: true },
+    meta: { requiresAuth: true },
   },
 
   // ── Wallet ────────────────────────────────────────────────────
@@ -145,6 +145,12 @@ const routes = [
   },
 
   // ── Subscriptions ─────────────────────────────────────────────
+  {
+    path: '/subscriptions',
+    name: 'SubscriptionsHome',
+    component: () => import('@/views/subscriptions/SubscriptionTiersView.vue'),
+    meta: { requiresAuth: true },
+  },
   {
     path: '/subscriptions/tiers',
     name: 'SubscriptionTiers',

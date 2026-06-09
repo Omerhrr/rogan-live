@@ -8,7 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('rogan_token'));
 
   const isAuthenticated = computed(() => !!token.value && !!user.value);
-  const isCreator = computed(() => user.value?.role === 'creator');
+  const isCreator = computed(() => user.value?.role === 'creator' || user.value?.role === 'admin');
 
   async function login(email: string, password: string): Promise<void> {
     const res = await authService.login(email, password);
