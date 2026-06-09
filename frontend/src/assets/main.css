@@ -1,0 +1,82 @@
+/* ── Rogan Live — Global Styles ────────────────────────────────── */
+/* This file replaces Vite's default template styles.              */
+/* All dark theme, layout, and Vuetify overrides live in style.css */
+
+/* ── Font Import ──────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ── Base Reset ───────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ── Smooth transitions for route changes ─────────────────────── */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ── Slide transitions ────────────────────────────────────────── */
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.25s ease;
+}
+
+.slide-left-enter-from {
+  transform: translateX(100%);
+}
+
+.slide-left-leave-to {
+  transform: translateX(-30%);
+}
+
+.slide-right-enter-from {
+  transform: translateX(-100%);
+}
+
+.slide-right-leave-to {
+  transform: translateX(30%);
+}
+
+/* ── Utility Classes ──────────────────────────────────────────── */
+.text-rogan-primary {
+  color: #E91E63;
+}
+
+.bg-rogan-primary {
+  background-color: #E91E63;
+}
+
+.border-rogan-primary {
+  border-color: #E91E63;
+}
+
+/* ── Desktop Layout Enhancement ───────────────────────────────── */
+@media (min-width: 960px) {
+  /* Prevent feed from being full-screen on desktop;
+     constrain to a centered column like TikTok web */
+  .feed-swipe-area.fixed.inset-0 {
+    position: relative !important;
+    max-width: 480px;
+    margin: 0 auto;
+    height: calc(100vh - 48px) !important;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ── Selection Color ──────────────────────────────────────────── */
+::selection {
+  background-color: rgba(233, 30, 99, 0.3);
+  color: #ffffff;
+}
