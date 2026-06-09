@@ -127,9 +127,23 @@ function goToLiveRoom(): void {
       v-else-if="feedStore.streams.length === 0"
       class="flex flex-col items-center justify-center h-full text-center px-8"
     >
-      <v-icon size="72" color="rogan-primary">mdi-broadcast-off</v-icon>
-      <h2 class="text-xl font-bold text-white mt-4">No Live Streams</h2>
-      <p class="text-gray-400 mt-2 text-sm">Check back soon! Creators are going live all the time.</p>
+      <div class="w-24 h-24 rounded-full bg-rogan-primary/10 flex items-center justify-center mb-6">
+        <v-icon size="48" color="rogan-primary">mdi-broadcast-off</v-icon>
+      </div>
+      <h2 class="text-2xl font-bold text-white mt-2">No Live Streams</h2>
+      <p class="text-gray-400 mt-3 text-sm max-w-md leading-relaxed">
+        Check back soon! Creators are going live all the time.
+        Follow your favorite creators to get notified when they go live.
+      </p>
+      <v-btn
+        color="rogan-primary"
+        variant="flat"
+        class="mt-6 font-semibold"
+        @click="feedStore.fetchLiveStreams()"
+      >
+        <v-icon start>mdi-refresh</v-icon>
+        Refresh
+      </v-btn>
     </div>
 
     <!-- Stream Cards -->
